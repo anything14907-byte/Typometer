@@ -69,5 +69,6 @@ export interface DiagnosticInsight {
   drillKeys?: string[];
 }
 
-export type SwitchAudioProfile = 'thock' | 'clicky' | 'cyber-pulse' | 'silent';
+export type SwitchAudioProfile = 'rocket-thrust' | 'thock' | 'clicky' | 'cyber-pulse' | 'silent';
 
+export type AppTheme = 'dark' | 'light';

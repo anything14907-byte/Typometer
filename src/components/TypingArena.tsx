@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { RotateCcw, Ghost, Code2, Sparkles } from 'lucide-react';
+import { RotateCcw, Ghost, Code2, Sparkles, Rocket } from 'lucide-react';
 import { TestMode, CodeLanguage } from '../types/telemetry';
 
 interface TypingArenaProps {
@@ -34,7 +34,7 @@ export const TypingArena: React.FC<TypingArenaProps> = ({
   const [ghostPos, setGhostPos] = useState<{ left: number; top: number }>({ left: 0, top: 0 });
   const [isFocused, setIsFocused] = useState<boolean>(true);
 
-  // Update Caret and Ghost position whenever index changes or on resize
+  // Position caret and ghost cursor
   useEffect(() => {
     const updateCaret = () => {
       const activeSpan = charSpanRefs.current[currentIndex];
@@ -48,16 +48,17 @@ export const TypingArena: React.FC<TypingArenaProps> = ({
           height: spanRect.height || 28,
         });
 
-        // Auto-scroll container to keep active line in view
-        if (spanRect.bottom > containerRect.bottom - 40) {
-          containerRef.current.scrollTop += 36;
+        // Auto-scroll smooth tracking
+        if (spanRect.bottom > containerRect.bottom - 45) {
+          containerRef.current.scrollTop += 38;
         } else if (spanRect.top < containerRect.top + 20) {
-          containerRef.current.scrollTop = Math.max(0, containerRef.current.scrollTop - 36);
+          containerRef.current.scrollTop = Math.max(0, containerRef.current.scrollTop - 38);
         }
       }
 
-      // Update Ghost Pacer Position
-      const ghostSpan = charSpanRefs.current[Math.min(ghostCharIndex, targetText.length - 1)];
+      // Update Ghost Pacer
+      const ghostIdx = Math.max(0, Math.min(ghostCharIndex, targetText.length - 1));
+      const ghostSpan = charSpanRefs.current[ghostIdx];
       if (ghostSpan && containerRef.current) {
         const containerRect = containerRef.current.getBoundingClientRect();
         const ghostRect = ghostSpan.getBoundingClientRect();
@@ -73,12 +74,10 @@ export const TypingArena: React.FC<TypingArenaProps> = ({
     return () => window.removeEventListener('resize', updateCaret);
   }, [currentIndex, ghostCharIndex, targetText.length]);
 
-  // Global key listener when typing arena is active
+  // Global key listener
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Tab + Enter to restart
       if (e.key === 'Tab') {
-        // Prevent default tab navigation so user can quickly restart
         e.preventDefault();
         return;
       }
@@ -96,51 +95,51 @@ export const TypingArena: React.FC<TypingArenaProps> = ({
 
   return (
     <div 
-      className="w-full relative cyber-panel rounded-2xl p-6 sm:p-8 border border-cyber-blue/30 shadow-2xl focus:outline-none select-none transition-all duration-300"
+      className="w-full relative rocket-panel rounded-2xl p-6 sm:p-8 border border-cyber-cyan/30 dark:border-cyber-cyan/20 shadow-2xl focus:outline-none select-none transition-all duration-300"
       onClick={() => setIsFocused(true)}
       onBlur={() => setIsFocused(false)}
       tabIndex={0}
     >
       {/* Top Banner / Mode Badge */}
-      <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800/80">
+      <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-2.5">
-          <div className="h-2 w-2 rounded-full bg-cyber-cyan animate-ping" />
-          <span className="text-xs font-display tracking-widest text-cyber-cyan font-bold uppercase">
-            {mode === 'code' ? `CODE MATRIX // ${codeLang?.toUpperCase()}` : `${mode.toUpperCase()} SYNAPSE LINK`}
+          <Rocket className="w-4 h-4 text-rocket-thrust animate-pulse" />
+          <span className="text-xs font-display tracking-widest text-slate-800 dark:text-cyber-cyan font-black uppercase">
+            {mode === 'code' ? `CODE MATRIX // ${codeLang?.toUpperCase()}` : `MISSION PROTOCOL // ${mode.toUpperCase()}`}
           </span>
           {mode === 'code' && <Code2 className="w-3.5 h-3.5 text-cyber-blue" />}
           {mode === 'adaptive' && (
-            <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-cyber-violet/20 text-cyber-violet border border-cyber-violet/30 font-sans">
-              <Sparkles className="w-3 h-3" /> WEAK-KEY ADAPTIVE
+            <span className="flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full bg-rocket-thrust/15 text-rocket-thrust border border-rocket-thrust/30 font-sans font-bold">
+              <Sparkles className="w-3 h-3" /> ADAPTIVE BOOST
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-4 text-xs text-slate-400">
-          <div className="flex items-center gap-1.5 font-mono">
-            <Ghost className="w-3.5 h-3.5 text-cyber-violet" />
-            <span className="text-slate-400">GHOST PACER:</span>
-            <span className="text-cyber-violet font-bold">{targetWpm} WPM</span>
+        <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-1.5 font-mono text-slate-600 dark:text-slate-400">
+            <Ghost className="w-3.5 h-3.5 text-nebula-purple" />
+            <span>GHOST PACER:</span>
+            <span className="text-rocket-nebula dark:text-cyber-purple font-bold">{targetWpm} WPM</span>
           </div>
 
           <button
             onClick={onRestart}
             title="Restart Session (Ctrl + Enter)"
-            className="flex items-center gap-1 text-slate-400 hover:text-cyber-cyan transition-colors px-2 py-1 rounded bg-obsidian-900 border border-slate-800 hover:border-cyber-cyan/40"
+            className="flex items-center gap-1 text-slate-600 dark:text-slate-300 hover:text-rocket-thrust transition-colors px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-obsidian-900 border border-slate-200 dark:border-slate-800 hover:border-rocket-thrust/40"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span className="text-[11px] font-sans">Restart</span>
+            <span className="text-[11px] font-sans font-bold">Restart</span>
           </button>
         </div>
       </div>
 
-      {/* Typing Container with Visual Gliding Caret and Ghost Pacer */}
+      {/* Typing Container */}
       <div 
         ref={containerRef}
         className="relative max-h-72 overflow-y-auto pr-2 font-mono text-xl sm:text-2xl leading-relaxed tracking-wide text-left"
         style={{ scrollBehavior: 'smooth' }}
       >
-        {/* Smooth Gliding Active Caret */}
+        {/* Rocket Gliding Caret */}
         {!isFinished && (
           <div
             className="absolute smooth-caret pointer-events-none z-20 flex flex-col items-center"
@@ -150,21 +149,23 @@ export const TypingArena: React.FC<TypingArenaProps> = ({
               height: `${caretPos.height}px`,
             }}
           >
-            <div className="w-[3px] h-full bg-cyber-cyan shadow-neon-cyan animate-pulse rounded-full" />
+            {/* Plasma Rocket Tip */}
+            <div className="w-[3px] h-full bg-gradient-to-b from-cyber-cyan via-rocket-amber to-rocket-thrust rounded-full shadow-rocket-thrust animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-rocket-thrust -mt-1 shadow-[0_0_8px_#FF5E00]" />
           </div>
         )}
 
         {/* Ghost Pacer Cursor */}
         {!isFinished && (
           <div
-            className="absolute ghost-caret pointer-events-none z-10 opacity-70 flex flex-col items-center"
+            className="absolute ghost-caret pointer-events-none z-10 opacity-75 flex flex-col items-center"
             style={{
               left: `${ghostPos.left}px`,
               top: `${ghostPos.top}px`,
             }}
           >
-            <div className="w-[2px] h-7 bg-cyber-violet border-r border-cyber-purple shadow-neon-violet" />
-            <div className="text-[9px] -mt-1 font-mono text-cyber-violet bg-obsidian-950/80 px-1 rounded border border-cyber-violet/40">
+            <div className="w-[2px] h-7 bg-rocket-nebula shadow-neon-violet" />
+            <div className="text-[9px] -mt-1 font-mono text-rocket-nebula bg-slate-900/80 px-1 rounded border border-rocket-nebula/40 font-bold">
               GHOST
             </div>
           </div>
@@ -176,17 +177,17 @@ export const TypingArena: React.FC<TypingArenaProps> = ({
             const state = charStates[idx];
             const isCurrent = idx === currentIndex;
 
-            let charClass = 'text-slate-600 transition-colors duration-75';
+            // Highly legible colors in both dark and light themes
+            let charClass = 'text-slate-400 dark:text-slate-600 transition-colors duration-75';
 
             if (state === 'correct') {
-              charClass = 'text-slate-100';
+              charClass = 'text-slate-900 dark:text-slate-100 font-medium';
             } else if (state === 'incorrect') {
-              charClass = 'text-cyber-crimson bg-cyber-crimson/20 rounded px-[1px] text-glow-crimson font-bold';
+              charClass = 'text-white bg-cyber-crimson rounded px-[1px] font-bold shadow-neon-crimson';
             } else if (isCurrent) {
-              charClass = 'text-cyber-cyan';
+              charClass = 'text-cyber-cyan dark:text-cyber-cyan font-bold';
             }
 
-            // Line break handling for code snippets
             if (char === '\n') {
               return (
                 <span
@@ -215,27 +216,27 @@ export const TypingArena: React.FC<TypingArenaProps> = ({
 
       {/* Focus Warning Prompt if Blurred */}
       {!isFocused && !isFinished && (
-        <div className="absolute inset-0 bg-obsidian-950/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center z-30 cursor-pointer">
-          <p className="text-cyber-cyan font-display tracking-widest text-lg font-bold mb-2">
-            TELEMETRY LINK PAUSED
+        <div className="absolute inset-0 bg-slate-900/70 dark:bg-obsidian-950/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center z-30 cursor-pointer">
+          <Rocket className="w-10 h-10 text-rocket-thrust animate-bounce mb-2" />
+          <p className="text-white font-display tracking-widest text-lg font-black mb-1">
+            MISSION PAUSED
           </p>
-          <p className="text-slate-400 text-xs font-mono">
-            Click anywhere or press any key to resume telemetry capture
+          <p className="text-slate-300 text-xs font-mono">
+            Click anywhere or press any key to engage thrusters
           </p>
         </div>
       )}
 
       {/* Footer Hints */}
-      <div className="flex items-center justify-between mt-6 pt-3 border-t border-slate-800/60 text-[11px] text-slate-500 font-mono">
+      <div className="flex items-center justify-between mt-6 pt-3 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 font-mono">
         <div className="flex items-center gap-3">
-          <span><kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Enter</kbd> to Quick Restart</span>
-          <span><kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Esc</kbd> for Command Palette</span>
+          <span><kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-bold">Ctrl</kbd> + <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-bold">Enter</kbd> Restart</span>
+          <span><kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-bold">Esc</kbd> Command Palette</span>
         </div>
-        <div className="text-right">
+        <div className="text-right font-bold text-slate-600 dark:text-slate-400">
           <span>{currentIndex} / {targetText.length} CHARS</span>
         </div>
       </div>
     </div>
   );
 };
-

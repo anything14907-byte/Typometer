@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { 
+  Rocket, 
   Terminal, 
   Code2, 
   Hash, 
   Sparkles, 
   Crosshair, 
-  Rocket, 
   ShieldAlert, 
   Trophy, 
   Flame, 
   Keyboard, 
   RotateCcw,
   SlidersHorizontal,
-  Volume2
+  Sun,
+  Moon
 } from 'lucide-react';
 
-import { TestMode, GameMode, CodeLanguage, SessionResult } from './types/telemetry';
+import { TestMode, GameMode, CodeLanguage, SessionResult, AppTheme } from './types/telemetry';
 import { useTypingEngine } from './hooks/useTypingEngine';
 import { useAudioSynth } from './hooks/useAudioSynth';
 import { useTelemetryHistory } from './hooks/useTelemetryHistory';
@@ -33,6 +34,10 @@ import { CareerTelemetryModal } from './components/CareerTelemetryModal';
 import { AudioControl } from './components/AudioControl';
 
 export function App() {
+  const [theme, setTheme] = useState<AppTheme>(() => {
+    return (localStorage.getItem('typometer_theme') as AppTheme) || 'dark';
+  });
+
   const [testMode, setTestMode] = useState<TestMode>('prose');
   const [gameMode, setGameMode] = useState<GameMode>('standard');
   const [codeLang, setCodeLang] = useState<CodeLanguage>('typescript');
@@ -45,10 +50,25 @@ export function App() {
   const [showCommandPalette, setShowCommandPalette] = useState<boolean>(false);
   const [drillTargetKeys, setDrillTargetKeys] = useState<string[]>([]);
 
+  // Apply Theme to <html> root
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('typometer_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   // Telemetry Engine & LocalStorage
   const { stats, recordSession, currentRank } = useTelemetryHistory();
 
-  // Audio Synthesizer
+  // Audio Synthesizer (100% reliable)
   const {
     profile,
     setProfile,
@@ -94,7 +114,7 @@ export function App() {
     onComboChime: playComboChime,
   });
 
-  // Global hotkeys for Esc (Command Palette)
+  // Global hotkeys (Esc for Command Palette)
   useEffect(() => {
     const handleKeyDownGlobal = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -124,117 +144,125 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen cyber-bg scanline-overlay text-slate-100 flex flex-col font-mono selection:bg-cyber-cyan/30 selection:text-cyber-cyan">
-      {/* Top Cybernetic Telemetry Header */}
-      <header className="w-full border-b border-cyber-blue/20 bg-obsidian-950/80 backdrop-blur-xl sticky top-0 z-40 px-4 sm:px-8 py-3">
+    <div className="min-h-screen rocket-bg text-slate-800 dark:text-slate-100 flex flex-col font-mono selection:bg-rocket-thrust/30 selection:text-rocket-thrust transition-colors duration-300">
+      {/* Top Rocket Mission Control Header */}
+      <header className="w-full border-b border-slate-200 dark:border-cyber-blue/20 bg-white/80 dark:bg-obsidian-950/85 backdrop-blur-xl sticky top-0 z-40 px-4 sm:px-8 py-3">
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-3">
           
-          {/* Logo & Version */}
+          {/* Logo & Aerospace Staging */}
           <div className="flex items-center gap-3">
-            <div className="relative w-9 h-9 rounded-lg bg-obsidian-900 border border-cyber-cyan/50 flex items-center justify-center shadow-neon-cyan">
-              <Terminal className="w-5 h-5 text-cyber-cyan animate-pulse" />
-              <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-cyber-cyan animate-ping" />
+            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-rocket-flame via-rocket-thrust to-rocket-amber flex items-center justify-center shadow-rocket-thrust">
+              <Rocket className="w-5 h-5 text-white animate-flame-flicker" />
+              <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-cyber-cyan animate-ping" />
             </div>
 
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-lg font-display font-black text-white tracking-widest">
+                <span className="text-xl font-display font-black tracking-widest text-slate-900 dark:text-white">
                   TYPOMETER
                 </span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded bg-cyber-cyan/15 text-cyber-cyan border border-cyber-cyan/30 font-mono">
-                  v2.6 TELEMETRY
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-rocket-thrust/15 text-rocket-thrust border border-rocket-thrust/40 font-mono font-bold">
+                  ROCKET MISSION v2.7
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 font-mono">
-                Advanced Biomechanical Typing Cockpit
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono font-semibold">
+                Aerospace Cognitive Typing & Telemetry Engine
               </p>
             </div>
           </div>
 
-          {/* Gamified Mode Switcher HUD */}
-          <div className="flex items-center gap-1.5 bg-obsidian-900/90 p-1 rounded-xl border border-slate-800 text-xs">
+          {/* Gamified Mission Modes Switcher */}
+          <div className="flex items-center gap-1.5 bg-slate-200/80 dark:bg-obsidian-900/90 p-1 rounded-xl border border-slate-300 dark:border-slate-800 text-xs">
             {/* Standard Mode */}
             <button
               onClick={() => { setGameMode('standard'); setActiveSession(null); }}
-              className={`px-3 py-1.5 rounded-lg font-display text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg font-display text-xs font-black transition-all flex items-center gap-1.5 ${
                 gameMode === 'standard'
-                  ? 'bg-cyber-cyan text-obsidian-950 shadow-neon-cyan'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-rocket-thrust text-white shadow-rocket-thrust'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Keyboard className="w-3.5 h-3.5" />
-              <span>Standard</span>
+              <span>Standard Flight</span>
             </button>
 
             {/* Orbital Defense */}
             <button
               onClick={() => setGameMode('orbital')}
-              className={`px-3 py-1.5 rounded-lg font-display text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg font-display text-xs font-black transition-all flex items-center gap-1.5 ${
                 gameMode === 'orbital'
-                  ? 'bg-cyber-violet text-white shadow-neon-violet'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-cyber-cyan text-slate-950 shadow-neon-cyan'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Crosshair className="w-3.5 h-3.5" />
-              <span>Orbital Defense</span>
+              <span>Orbital Blaster</span>
             </button>
 
             {/* Warp Drive */}
             <button
               onClick={() => setGameMode('warp')}
-              className={`px-3 py-1.5 rounded-lg font-display text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg font-display text-xs font-black transition-all flex items-center gap-1.5 ${
                 gameMode === 'warp'
-                  ? 'bg-cyber-emerald text-obsidian-950 shadow-neon-emerald'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-rocket-nebula text-white shadow-neon-violet'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Rocket className="w-3.5 h-3.5" />
-              <span>Warp Drive</span>
+              <span>Warp Tunnel</span>
             </button>
 
             {/* Syntax Breaker */}
             <button
               onClick={() => setGameMode('hack')}
-              className={`px-3 py-1.5 rounded-lg font-display text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg font-display text-xs font-black transition-all flex items-center gap-1.5 ${
                 gameMode === 'hack'
                   ? 'bg-cyber-crimson text-white shadow-neon-crimson'
-                  : 'text-slate-400 hover:text-slate-200'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Syntax Breaker</span>
+              <span>Syntax Hack</span>
             </button>
           </div>
 
-          {/* Right Action Widgets */}
-          <div className="flex items-center gap-3">
+          {/* Right Action Tools & Theme Switcher */}
+          <div className="flex items-center gap-2.5">
+            {/* Light / Dark Mode Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl bg-slate-200/80 dark:bg-obsidian-900 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-amber-400 hover:scale-105 transition-all shadow-sm"
+              title={`Switch to ${theme === 'dark' ? 'Light (Apollo)' : 'Dark (Deep Space)'} Theme`}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+            </button>
+
             {/* Focus Sprint Timer Button */}
             <button
               onClick={() => setShowPomodoro(!showPomodoro)}
               className={`px-2.5 py-1.5 rounded-xl border flex items-center gap-1.5 font-display text-xs font-bold transition-all ${
                 showPomodoro
-                  ? 'bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan'
-                  : 'bg-obsidian-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-rocket-thrust/20 border-rocket-thrust text-rocket-thrust'
+                  : 'bg-slate-200/80 dark:bg-obsidian-900 border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300'
               }`}
             >
-              <Flame className="w-3.5 h-3.5 text-cyber-cyan" />
-              <span>Deep Sprint</span>
+              <Flame className="w-3.5 h-3.5 text-rocket-thrust" />
+              <span>Sprint</span>
             </button>
 
-            {/* Lifetime Telemetry Dossier Button */}
+            {/* Pilot Dossier Button */}
             <button
               onClick={() => setShowCareerModal(true)}
-              className="px-2.5 py-1.5 rounded-xl bg-obsidian-900 border border-slate-800 text-slate-300 hover:text-cyber-amber hover:border-cyber-amber/40 transition-all flex items-center gap-1.5 font-mono text-xs"
+              className="px-2.5 py-1.5 rounded-xl bg-slate-200/80 dark:bg-obsidian-900 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:text-rocket-amber transition-all flex items-center gap-1.5 font-mono text-xs font-bold"
             >
-              <Trophy className="w-3.5 h-3.5 text-cyber-amber" />
-              <span className="font-display font-bold">{currentRank.badge}</span>
-              <span className="text-slate-500">| PB {stats.bestWpm} WPM</span>
+              <Trophy className="w-3.5 h-3.5 text-rocket-amber" />
+              <span>PB {stats.bestWpm || 0}</span>
             </button>
 
-            {/* Command Palette Trigger */}
+            {/* Command Palette */}
             <button
               onClick={() => setShowCommandPalette(true)}
-              className="p-1.5 rounded-xl bg-obsidian-900 border border-slate-800 text-slate-400 hover:text-white"
+              className="p-2 rounded-xl bg-slate-200/80 dark:bg-obsidian-900 border border-slate-300 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               title="Command Palette (Esc)"
             >
               <SlidersHorizontal className="w-4 h-4" />
@@ -244,7 +272,7 @@ export function App() {
         </div>
       </header>
 
-      {/* Main Cockpit Arena Content */}
+      {/* Main Cockpit Arena */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 flex flex-col justify-center">
         
         {/* Game Mode 1: Orbital Defense */}
@@ -275,46 +303,46 @@ export function App() {
           />
         )}
 
-        {/* Standard Telemetry Mode */}
+        {/* Standard Mission Mode */}
         {gameMode === 'standard' && (
           <div className="w-full space-y-4">
             
-            {/* Multi-Domain Sub-Mode Selector & Audio Bar */}
+            {/* Mode Selector & Audio Toolbar */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 pb-2">
-              <div className="flex items-center gap-1 bg-obsidian-900/80 p-1 rounded-xl border border-slate-800 text-xs">
+              <div className="flex items-center gap-1 bg-slate-200/80 dark:bg-obsidian-900/90 p-1 rounded-xl border border-slate-300 dark:border-slate-800 text-xs">
                 {/* Cyber-Prose */}
                 <button
                   onClick={() => { setTestMode('prose'); setActiveSession(null); }}
-                  className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-display font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-display font-black transition-all ${
                     testMode === 'prose'
-                      ? 'bg-cyber-cyan text-obsidian-950 shadow-neon-cyan'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-rocket-thrust text-white shadow-rocket-thrust'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
                 >
-                  <Terminal className="w-3.5 h-3.5" />
-                  <span>Cyber-Prose</span>
+                  <Rocket className="w-3.5 h-3.5" />
+                  <span>Mission Prose</span>
                 </button>
 
                 {/* Code Matrix */}
                 <button
                   onClick={() => { setTestMode('code'); setActiveSession(null); }}
-                  className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-display font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-display font-black transition-all ${
                     testMode === 'code'
-                      ? 'bg-cyber-blue text-obsidian-950 shadow-neon-cyan'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-cyber-cyan text-slate-950 shadow-neon-cyan'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
                 >
                   <Code2 className="w-3.5 h-3.5" />
                   <span>Code Matrix</span>
                 </button>
 
-                {/* Numbers & Symbols */}
+                {/* Symbols */}
                 <button
                   onClick={() => { setTestMode('symbols'); setActiveSession(null); }}
-                  className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-display font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-display font-black transition-all ${
                     testMode === 'symbols'
-                      ? 'bg-cyber-emerald text-obsidian-950 shadow-neon-emerald'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-cyber-emerald text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
                 >
                   <Hash className="w-3.5 h-3.5" />
@@ -324,10 +352,10 @@ export function App() {
                 {/* Weak-Key Adaptive */}
                 <button
                   onClick={() => { setTestMode('adaptive'); setActiveSession(null); }}
-                  className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-display font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-display font-black transition-all ${
                     testMode === 'adaptive'
-                      ? 'bg-cyber-violet text-white shadow-neon-violet'
-                      : 'text-slate-400 hover:text-slate-200'
+                      ? 'bg-rocket-nebula text-white shadow-neon-violet'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
                 >
                   <Sparkles className="w-3.5 h-3.5" />
@@ -335,17 +363,17 @@ export function App() {
                 </button>
               </div>
 
-              {/* If in Code Matrix mode, show Language Selector */}
+              {/* Code language selector if in Code mode */}
               {testMode === 'code' && (
-                <div className="flex items-center gap-1 bg-obsidian-900/80 p-1 rounded-xl border border-slate-800 text-xs">
+                <div className="flex items-center gap-1 bg-slate-200/80 dark:bg-obsidian-900/90 p-1 rounded-xl border border-slate-300 dark:border-slate-800 text-xs font-mono">
                   {(['typescript', 'python', 'rust'] as CodeLanguage[]).map(lang => (
                     <button
                       key={lang}
                       onClick={() => setCodeLang(lang)}
-                      className={`px-2.5 py-1 rounded-lg uppercase font-mono text-[11px] font-bold transition-all ${
+                      className={`px-2.5 py-1 rounded-lg uppercase text-[11px] font-bold transition-all ${
                         codeLang === lang
-                          ? 'bg-slate-700 text-white'
-                          : 'text-slate-400 hover:text-slate-200'
+                          ? 'bg-rocket-thrust text-white font-black'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                       }`}
                     >
                       {lang}
@@ -365,7 +393,7 @@ export function App() {
               />
             </div>
 
-            {/* Live Real-time Telemetry HUD */}
+            {/* Live Rocket Telemetry HUD */}
             <TelemetryHUD
               liveWpm={liveWpm}
               rawWpm={liveRawWpm}
@@ -378,7 +406,7 @@ export function App() {
               isStarted={isStarted}
             />
 
-            {/* In-Session Typing Arena or Post-Run Results Dashboard */}
+            {/* In-Session Typing Arena or Results Dashboard */}
             {isFinished && activeSession ? (
               <ResultsDashboard
                 session={activeSession}
@@ -455,14 +483,14 @@ export function App() {
         onRestart={restartCurrentTest}
       />
 
-      {/* Subtle Laser Status Footer */}
-      <footer className="w-full border-t border-slate-900 bg-obsidian-950/90 py-2.5 px-6 text-center text-[11px] text-slate-500 font-mono flex items-center justify-between">
+      {/* Aerodynamic Launch Footer */}
+      <footer className="w-full border-t border-slate-200 dark:border-slate-900 bg-white/80 dark:bg-obsidian-950/90 py-2.5 px-6 text-center text-[11px] text-slate-500 font-mono flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-cyber-emerald" />
-          <span>NEURAL LINK ONLINE // ZERO LATENCY BUFFER</span>
+          <span className="w-2 h-2 rounded-full bg-rocket-thrust animate-ping" />
+          <span className="font-bold text-slate-700 dark:text-slate-300">ROCKET TELEMETRY ONLINE // TRANSONIC SPEED BUFFER</span>
         </div>
         <div>
-          <span>Press <kbd className="text-slate-400">Esc</kbd> for Command Palette | <kbd className="text-slate-400">Ctrl+Enter</kbd> to Restart</span>
+          <span>Press <kbd className="text-slate-700 dark:text-slate-400 font-bold">Esc</kbd> Command Palette | <kbd className="text-slate-700 dark:text-slate-400 font-bold">Ctrl+Enter</kbd> Restart</span>
         </div>
       </footer>
     </div>
@@ -470,4 +498,3 @@ export function App() {
 }
 
 export default App;
-

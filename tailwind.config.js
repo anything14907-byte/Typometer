@@ -4,24 +4,35 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
+        rocket: {
+          thrust: '#FF5E00',
+          flame: '#FF2A00',
+          amber: '#FFB800',
+          plasma: '#00F0FF',
+          nebula: '#9D4EDD',
+          boost: '#7928CA',
+          hull: '#0B0F19',
+          titanium: '#F1F5F9',
+        },
         obsidian: {
-          950: '#030508',
-          900: '#05070A',
-          850: '#090D14',
-          800: '#0F172A',
-          700: '#1E293B',
+          950: '#05070E',
+          900: '#0A0F1D',
+          850: '#0E172B',
+          800: '#15213D',
+          700: '#1E2F56',
         },
         cyber: {
           cyan: '#00F0FF',
-          blue: '#38BDF8',
+          blue: '#0284C7',
           violet: '#A855F7',
           purple: '#C084FC',
           emerald: '#10B981',
-          crimson: '#FF2A5F',
-          amber: '#F59E0B',
+          crimson: '#FF0055',
+          amber: '#FFB800',
           muted: '#64748B',
         }
       },
@@ -31,26 +42,32 @@ export default {
         sans: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.45), 0 0 30px rgba(0, 240, 255, 0.2)',
-        'neon-violet': '0 0 15px rgba(168, 85, 247, 0.45), 0 0 30px rgba(168, 85, 247, 0.2)',
-        'neon-crimson': '0 0 15px rgba(255, 42, 95, 0.45), 0 0 30px rgba(255, 42, 95, 0.2)',
-        'neon-emerald': '0 0 15px rgba(16, 185, 129, 0.45), 0 0 30px rgba(16, 185, 129, 0.2)',
-        'glass-panel': '0 8px 32px 0 rgba(0, 0, 0, 0.6)',
+        'rocket-thrust': '0 0 20px rgba(255, 94, 0, 0.5), 0 0 40px rgba(255, 42, 0, 0.25)',
+        'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.5), 0 0 35px rgba(0, 240, 255, 0.25)',
+        'neon-violet': '0 0 15px rgba(168, 85, 247, 0.5), 0 0 35px rgba(168, 85, 247, 0.25)',
+        'neon-crimson': '0 0 15px rgba(255, 0, 85, 0.5), 0 0 35px rgba(255, 0, 85, 0.25)',
+        'neon-gold': '0 0 15px rgba(255, 184, 0, 0.5), 0 0 35px rgba(255, 184, 0, 0.25)',
+        'glass-panel': '0 12px 40px 0 rgba(0, 0, 0, 0.45)',
+        'glass-light': '0 10px 30px 0 rgba(0, 0, 0, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.05)',
       },
       animation: {
-        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'spin-slow': 'spin 12s linear infinite',
-        'spin-fast': 'spin 3s linear infinite',
-        'scanline': 'scanline 8s linear infinite',
+        'pulse-fast': 'pulse 0.8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'spin-slow': 'spin 10s linear infinite',
+        'spin-fast': 'spin 2.5s linear infinite',
+        'flame-flicker': 'flame 0.4s ease-in-out infinite alternate',
+        'thrust-pulse': 'thrust 1.5s ease-in-out infinite',
       },
       keyframes: {
-        scanline: {
-          '0%': { transform: 'translateY(-100%)' },
-          '100%': { transform: 'translateY(1000%)' },
+        flame: {
+          '0%': { transform: 'scale(1) translateY(0)', opacity: '0.9' },
+          '100%': { transform: 'scale(1.15) translateY(-2px)', opacity: '1', filter: 'drop-shadow(0 0 12px #FF5E00)' },
+        },
+        thrust: {
+          '0%, 100%': { opacity: '0.7', transform: 'scale(0.98)' },
+          '50%': { opacity: '1', transform: 'scale(1.04)', filter: 'drop-shadow(0 0 18px #00F0FF)' },
         }
       }
     },
   },
   plugins: [],
 }
-
