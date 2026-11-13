@@ -22,7 +22,15 @@ export function useTelemetryHistory() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return {
+          ...INITIAL_STATS,
+          ...parsed,
+          bestWpm: parsed.bestWpm || 0,
+          totalXp: parsed.totalXp || 0,
+          keyAccuracyMap: parsed.keyAccuracyMap || {},
+          recentSessions: Array.isArray(parsed.recentSessions) ? parsed.recentSessions : []
+        };
       }
     } catch {
       // fallback
@@ -30,7 +38,7 @@ export function useTelemetryHistory() {
     return INITIAL_STATS;
   });
 
-  // Sync to localStorage
+  // Sync to localStorage safely
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
@@ -44,45 +52,43 @@ export function useTelemetryHistory() {
    */
   const recordSession = useCallback((session: SessionResult) => {
     setStats(prev => {
-      const newTotalTests = prev.totalTests + 1;
-      const newTotalTime = prev.totalTimeMinutes + (session.timeSeconds / 60);
-      const newBestWpm = Math.max(prev.bestWpm, session.wpm);
+      const newTotalTests = (prev.totalTests || 0) + 1;
+      const newTotalTime = (prev.totalTimeMinutes || 0) + (session.timeSeconds / 60);
+      const newBestWpm = Math.max(prev.bestWpm || 0, session.wpm);
       
-      // Calculate weighted averages
       const newAvgWpm = Math.round(
-        (prev.avgWpm * prev.totalTests + session.wpm) / newTotalTests
+        ((prev.avgWpm || 0) * (prev.totalTests || 0) + session.wpm) / newTotalTests
       );
       const newAvgAccuracy = Math.round(
-        (prev.avgAccuracy * prev.totalTests + session.accuracy) / newTotalTests
+        ((prev.avgAccuracy || 0) * (prev.totalTests || 0) + session.accuracy) / newTotalTests
       );
 
-      // XP calculation: (WPM * 2) + (Accuracy * 1.5) + (CharCount * 0.2) + Streak Bonus
       const earnedXp = Math.round(
         (session.wpm * 2) + 
         (session.accuracy * 1.5) + 
         (session.charCount * 0.3)
       );
 
-      const newTotalXp = prev.totalXp + earnedXp;
+      const newTotalXp = (prev.totalXp || 0) + earnedXp;
       const newLevel = Math.max(1, Math.floor(Math.sqrt(newTotalXp / 120)) + 1);
 
-      // Update aggregate key stats
-      const updatedKeyMap: KeyHeatmapData = { ...prev.keyAccuracyMap };
-      Object.entries(session.keyStats).forEach(([key, val]) => {
-        if (!updatedKeyMap[key]) {
-          updatedKeyMap[key] = { total: 0, errors: 0, totalLatencyMs: 0 };
-        }
-        updatedKeyMap[key].total += val.total;
-        updatedKeyMap[key].errors += val.errors;
-        updatedKeyMap[key].totalLatencyMs += val.totalLatencyMs;
-      });
+      const updatedKeyMap: KeyHeatmapData = { ...(prev.keyAccuracyMap || {}) };
+      if (session.keyStats) {
+        Object.entries(session.keyStats).forEach(([key, val]) => {
+          if (!updatedKeyMap[key]) {
+            updatedKeyMap[key] = { total: 0, errors: 0, totalLatencyMs: 0 };
+          }
+          updatedKeyMap[key].total += val.total;
+          updatedKeyMap[key].errors += val.errors;
+          updatedKeyMap[key].totalLatencyMs += val.totalLatencyMs;
+        });
+      }
 
       const userRank = getRankForUser(newBestWpm, newTotalXp);
-
-      // Prepend session to recent sessions (keep last 50)
+      const existingSessions = Array.isArray(prev.recentSessions) ? prev.recentSessions : [];
       const updatedSessions = [
         { ...session, xpEarned: earnedXp },
-        ...prev.recentSessions.slice(0, 49)
+        ...existingSessions.slice(0, 49)
       ];
 
       return {
@@ -109,7 +115,6 @@ export function useTelemetryHistory() {
     stats,
     recordSession,
     resetTelemetry,
-    currentRank: getRankForUser(stats.bestWpm, stats.totalXp)
+    currentRank: getRankForUser(stats.bestWpm || 0, stats.totalXp || 0)
   };
 }
-

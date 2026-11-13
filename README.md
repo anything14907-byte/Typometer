@@ -101,3 +101,4 @@ Visit `http://localhost:5173/` in your browser.
 ## 📜 License
 
 MIT License. Crafted for elite typists, developers, and cybernetic keyboard enthusiasts.
+

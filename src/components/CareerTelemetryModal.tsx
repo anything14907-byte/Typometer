@@ -6,12 +6,10 @@ import {
   Activity, 
   Clock, 
   X, 
-  Gamepad2, 
   ArrowRight,
-  TrendingUp,
-  Award
+  TrendingUp
 } from 'lucide-react';
-import { UserStats, KeyHeatmapData } from '../types/telemetry';
+import { UserStats } from '../types/telemetry';
 import { CYBER_RANKS, CyberRank } from '../data/ranks';
 import { VirtualKeyboard } from './VirtualKeyboard';
 
@@ -34,8 +32,11 @@ export const CareerTelemetryModal: React.FC<CareerTelemetryModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const keyMap = stats?.keyAccuracyMap || {};
+  const recentList = Array.isArray(stats?.recentSessions) ? stats.recentSessions : [];
+
   // Identify all-time weakest keys
-  const weakKeys = Object.entries(stats.keyAccuracyMap)
+  const weakKeys = Object.entries(keyMap)
     .map(([key, data]) => {
       const errorRate = data.total > 0 ? data.errors / data.total : 0;
       const avgLatency = data.total > 0 ? data.totalLatencyMs / data.total : 0;
@@ -46,20 +47,27 @@ export const CareerTelemetryModal: React.FC<CareerTelemetryModalProps> = ({
     .slice(0, 4);
 
   // Past 20 sessions trend
-  const sessions = stats.recentSessions.slice(0, 20).reverse();
-  const maxWpm = Math.max(80, ...sessions.map(s => s.wpm)) + 10;
+  const sessions = recentList.slice(0, 20).reverse();
+  const maxWpm = Math.max(80, ...sessions.map(s => s.wpm || 0)) + 10;
   const chartWidth = 600;
   const chartHeight = 120;
 
   const points = sessions.map((s, idx) => {
     const x = sessions.length > 1 ? (idx / (sessions.length - 1)) * (chartWidth - 40) + 20 : chartWidth / 2;
-    const y = chartHeight - 15 - (s.wpm / maxWpm) * (chartHeight - 30);
-    return { x, y, wpm: s.wpm, acc: s.accuracy, date: s.date };
+    const y = chartHeight - 15 - ((s.wpm || 0) / maxWpm) * (chartHeight - 30);
+    return { x, y, wpm: s.wpm || 0, acc: s.accuracy || 100, date: s.date };
   });
 
   const pathD = points.length > 1
     ? points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')
     : '';
+
+  const totalXp = stats?.totalXp || 0;
+  const level = stats?.level || 1;
+  const bestWpm = stats?.bestWpm || 0;
+  const avgWpm = stats?.avgWpm || 0;
+  const avgAccuracy = stats?.avgAccuracy || 100;
+  const totalTests = stats?.totalTests || 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-obsidian-950/85 backdrop-blur-md animate-fadeIn overflow-y-auto">
@@ -81,18 +89,18 @@ export const CareerTelemetryModal: React.FC<CareerTelemetryModalProps> = ({
               </span>
             </div>
             <h2 className="text-2xl font-display font-extrabold text-white">
-              PILOT CLASSIFICATION: {currentRank.title}
+              PILOT CLASSIFICATION: {currentRank?.title || 'INITIATE RECEPTOR'}
             </h2>
           </div>
 
           <div className="mt-3 sm:mt-0 flex items-center gap-3">
             <div className="px-3 py-1.5 rounded-xl bg-obsidian-900 border border-cyber-cyan/40 text-center font-mono">
               <span className="text-[10px] text-slate-500 block uppercase">PILOT LEVEL</span>
-              <span className="text-sm font-bold text-cyber-cyan">LVL {stats.level}</span>
+              <span className="text-sm font-bold text-cyber-cyan">LVL {level}</span>
             </div>
             <div className="px-3 py-1.5 rounded-xl bg-obsidian-900 border border-cyber-amber/40 text-center font-mono">
               <span className="text-[10px] text-slate-500 block uppercase">TOTAL XP</span>
-              <span className="text-sm font-bold text-cyber-amber">{stats.totalXp.toLocaleString()}</span>
+              <span className="text-sm font-bold text-cyber-amber">{totalXp.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -104,7 +112,7 @@ export const CareerTelemetryModal: React.FC<CareerTelemetryModalProps> = ({
               <Zap className="w-3.5 h-3.5 text-cyber-cyan" /> PERSONAL BEST
             </span>
             <div className="text-2xl font-bold text-white text-glow-cyan mt-1">
-              {stats.bestWpm} <span className="text-xs text-slate-500">WPM</span>
+              {bestWpm} <span className="text-xs text-slate-500">WPM</span>
             </div>
           </div>
 
@@ -113,7 +121,7 @@ export const CareerTelemetryModal: React.FC<CareerTelemetryModalProps> = ({
               <Activity className="w-3.5 h-3.5 text-cyber-blue" /> CAREER AVERAGE
             </span>
             <div className="text-2xl font-bold text-slate-200 mt-1">
-              {stats.avgWpm} <span className="text-xs text-slate-500">WPM</span>
+              {avgWpm} <span className="text-xs text-slate-500">WPM</span>
             </div>
           </div>
 
@@ -122,7 +130,7 @@ export const CareerTelemetryModal: React.FC<CareerTelemetryModalProps> = ({
               <Target className="w-3.5 h-3.5 text-cyber-emerald" /> AVG ACCURACY
             </span>
             <div className="text-2xl font-bold text-cyber-emerald mt-1">
-              {stats.avgAccuracy || 100}%
+              {avgAccuracy}%
             </div>
           </div>
 
@@ -131,7 +139,7 @@ export const CareerTelemetryModal: React.FC<CareerTelemetryModalProps> = ({
               <Clock className="w-3.5 h-3.5 text-cyber-violet" /> TESTS LOGGED
             </span>
             <div className="text-2xl font-bold text-cyber-violet mt-1">
-              {stats.totalTests} <span className="text-xs text-slate-500">runs</span>
+              {totalTests} <span className="text-xs text-slate-500">runs</span>
             </div>
           </div>
         </div>
@@ -210,7 +218,7 @@ export const CareerTelemetryModal: React.FC<CareerTelemetryModalProps> = ({
 
         {/* Lifetime Keyboard Heatmap */}
         <div className="mb-6">
-          <VirtualKeyboard keyStats={stats.keyAccuracyMap} />
+          <VirtualKeyboard keyStats={keyMap} />
         </div>
 
         {/* Cybernetic Ranks Progression Hierarchy */}
@@ -220,7 +228,7 @@ export const CareerTelemetryModal: React.FC<CareerTelemetryModalProps> = ({
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
             {CYBER_RANKS.map(r => {
-              const isUnlocked = stats.bestWpm >= r.minWpm || stats.totalXp >= r.minXp;
+              const isUnlocked = bestWpm >= r.minWpm || totalXp >= r.minXp;
               return (
                 <div
                   key={r.rankLevel}
@@ -250,4 +258,3 @@ export const CareerTelemetryModal: React.FC<CareerTelemetryModalProps> = ({
     </div>
   );
 };
-
